@@ -1,110 +1,63 @@
-Pasture Growth Analysis Using Machine Learning
-==============================================
+# Pasture Growth Prediction — Large-Scale ML
 
-This project was developed for IFN703 - Advanced Data Analytics 
-at Queensland University of Technology (QUT).
+> Predicting Total Seasonal Dry Matter (pasture growth) across Queensland from 33 million+ environmental records, comparing Random Forest against XGBoost.
 
-It focuses on predicting Total Seasonal Dry Matter (TSDM) for pasture 
-growth using two supervised machine learning techniques:
-Random Forest Regressor and XGBoost Regressor.
+![Python](https://img.shields.io/badge/Python-3-3776AB?style=flat-square&logo=python&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-Random%20Forest-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)
+![XGBoost](https://img.shields.io/badge/XGBoost-Regressor-EB0000?style=flat-square)
+![Pandas](https://img.shields.io/badge/Pandas-Data%20Wrangling-150458?style=flat-square&logo=pandas&logoColor=white)
 
+QUT Advanced Capstone (IFN703), June to November 2024.
 
---------------------------------------------------------------
-OBJECTIVE
---------------------------------------------------------------
-To develop a predictive model that estimates pasture productivity 
-(Total Seasonal Dry Matter - TSDM) based on environmental and 
-temporal variables.
+---
 
-The project aims to:
-- Identify the key environmental factors affecting pasture growth
-- Compare ensemble-based regression models for accuracy
-- Enable short-term forecasting using historical feature averages
+## 📌 Overview
 
+Pasture growth (Total Seasonal Dry Matter, TSDM) drives grazing capacity and stocking decisions for Queensland agriculture, but it's expensive to measure directly at scale. This project builds and compares two regression models that predict TSDM from climate and satellite data alone, and identifies which environmental factors actually move the needle.
 
---------------------------------------------------------------
-DATASETS USED
---------------------------------------------------------------
-The dataset combines field-based pasture measurements and 
-meteorological variables including:
+## 📊 Dataset
 
-- Rainfall (RAIN)
-- Maximum Temperature (MAX_TEMP)
-- Minimum Temperature (MIN_TEMP)
-- Relative Humidity (RH_TMAX, RH_TMIN)
-- Evaporation (EVAP)
-- Solar Radiation (RADIATION)
-- Crop Type, Land Size, Paddock ID, and Observation Date
+- 33 million+ records combining SILO climate data and satellite-derived pasture measurements across Queensland
+- Features: rainfall, max/min temperature, humidity, evaporation, solar radiation, paddock land size, year and month
+- Engineered features: temperature range, month-based historical averages for temporal smoothing
 
-Region: Queensland, Australia
-Time Period: Multiple seasonal observations (aggregated monthly)
+## 🔍 Methodology
 
+- `SelectKBest` feature selection to narrow the environmental variables down to the most predictive set (Year, EVAP, RADIATION, Temp_Range, RH_TMAX, MIN_TEMP, MAX_TEMP)
+- 80/20 train/test split
+- Two models trained and compared: **Random Forest Regressor** and **XGBoost Regressor**
+- `RandomizedSearchCV` hyperparameter tuning on both
+- Multi-metric evaluation: R², RMSE, MAE, not just one headline number
 
---------------------------------------------------------------
-FEATURES ENGINEERED
---------------------------------------------------------------
-- Temp_Range = MAX_TEMP - MIN_TEMP
-- Month-based historical averages for feature smoothing
-- Encoded temporal variables (Month, Year)
-- Standardization and scaling of numeric features
-- Removal of outliers and handling of missing data
+## 📈 Results
 
+![Correlation matrix of climate and TSDM variables](pasture-correlation-matrix.png)
 
---------------------------------------------------------------
-MODELS USED
---------------------------------------------------------------
-1. Random Forest Regressor
-   - Captures nonlinear feature interactions
-   - Provides feature importance scores
-   - High interpretability and stability
+Random Forest was the stronger model, R² ≈ 0.717 against XGBoost's R² ≈ 0.664.
 
-2. XGBoost Regressor
-   - Gradient boosting framework with regularization
-   - Optimized for performance and generalization
+![Feature importance from the Random Forest model](pasture-feature-importance.png)
 
+Year was by far the dominant predictor, well ahead of evaporation and solar radiation, which suggests a meaningful year-on-year trend in the data beyond seasonal weather alone.
 
---------------------------------------------------------------
-RESULTS & INSIGHTS
---------------------------------------------------------------
-- Random Forest achieved R² ≈ 0.717 on the test set
-- XGBoost achieved R² ≈ 0.664 on the test set
-- Top predictive variables:
-  • Year
-  • Evaporation
-  • Radiation
-- The month-based historical feature averages improved 
-  short-term prediction reliability
-- Both models effectively captured seasonal variability in pasture growth
+![Actual vs predicted values](pasture-actual-vs-predicted.png)
 
+![Historical vs predicted monthly mean TSDM](pasture-predicted.png)
 
---------------------------------------------------------------
-CONCLUSIONS
---------------------------------------------------------------
-The study demonstrates that ensemble-based machine learning methods 
-(Random Forest and XGBoost) can effectively model complex environmental 
-interactions driving pasture growth.
+## 🛠️ Tech Stack
 
-Feature engineering (e.g., temperature range and month-based averages) 
-significantly enhanced model accuracy and interpretability.
+| Technology | Purpose |
+|---|---|
+| Python | Core language |
+| Pandas / NumPy | Data merging, cleaning, feature engineering |
+| scikit-learn | Random Forest, `SelectKBest`, `RandomizedSearchCV` |
+| XGBoost | Gradient-boosted regression model |
+| Matplotlib / Seaborn | All result visualisations |
 
-The developed models can support agricultural management decisions 
-by providing insights into the environmental factors most influential 
-to pasture productivity in Queensland.
+## 📁 Files
 
+- [`PG-UP-1.ipynb`](PG-UP-1.ipynb) — full analysis notebook
+- [`IFN703_Varun_Vikas_Jaiswal_n11736089.pdf`](IFN703_Varun_Vikas_Jaiswal_n11736089.pdf) — exported report
 
---------------------------------------------------------------
-AUTHOR INFORMATION
---------------------------------------------------------------
-Varun Vikas Jaiswal
-Student ID: N11736089
-Queensland University of Technology (QUT)
-Unit: IFN703 - Advanced Data Analytics
-Year: 2025
+---
 
-
---------------------------------------------------------------
-KEYWORDS
---------------------------------------------------------------
-Pasture Growth, Machine Learning, Random Forest, XGBoost, 
-TSDM Prediction, Feature Engineering, Environmental Analytics, 
-Agricultural Data Science, Queensland, Data-driven Agriculture
+**Author:** Varun Vikas Jaiswal (QUT, 2024)

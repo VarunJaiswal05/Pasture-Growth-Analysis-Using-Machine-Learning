@@ -1,4 +1,4 @@
-# Pasture Growth Prediction — Large-Scale ML
+# Pasture Growth Prediction: Large-Scale ML
 
 > Predicting Total Seasonal Dry Matter (pasture growth) across Queensland from 33 million+ environmental records, comparing Random Forest against XGBoost.
 
@@ -11,37 +11,62 @@ QUT Advanced Capstone (IFN703), June to November 2024.
 
 ---
 
-## 📌 Overview
+## 📌 The Problem
 
-Pasture growth (Total Seasonal Dry Matter, TSDM) drives grazing capacity and stocking decisions for Queensland agriculture, but it's expensive to measure directly at scale. This project builds and compares two regression models that predict TSDM from climate and satellite data alone, and identifies which environmental factors actually move the needle.
+Pasture growth, measured as Total Seasonal Dry Matter (TSDM), drives grazing capacity and stocking decisions across Queensland's agricultural land. Measuring it directly at scale is expensive and slow. This project asks a simpler question instead: can TSDM be predicted from climate and satellite data that's already being collected, and if so, which environmental factors actually matter?
 
-## 📊 Dataset
+## 📊 The Data
 
-- 33 million+ records combining SILO climate data and satellite-derived pasture measurements across Queensland
-- Features: rainfall, max/min temperature, humidity, evaporation, solar radiation, paddock land size, year and month
-- Engineered features: temperature range, month-based historical averages for temporal smoothing
+Three sources were merged into one working dataset:
 
-## 🔍 Methodology
+- **SILO climate data**: rainfall, max/min temperature, humidity, evaporation, solar radiation
+- **Satellite-derived pasture measurements**: TSDM readings by paddock
+- **Paddock metadata**: land size, pasture state (filtered to grazing paddocks)
 
-- `SelectKBest` feature selection to narrow the environmental variables down to the most predictive set (Year, EVAP, RADIATION, Temp_Range, RH_TMAX, MIN_TEMP, MAX_TEMP)
-- 80/20 train/test split
-- Two models trained and compared: **Random Forest Regressor** and **XGBoost Regressor**
-- `RandomizedSearchCV` hyperparameter tuning on both
-- Multi-metric evaluation: R², RMSE, MAE, not just one headline number
+33 million+ merged records in total, spanning multiple years and paddocks across Queensland. From the raw features, two engineered ones were added: `Temp_Range` (max minus min temperature) and a month-based historical average to smooth out short-term noise.
 
-## 📈 Results
+## 🔎 Exploratory Analysis
+
+![Pairplot of climate and TSDM variables](pasture-pairplot.png)
+
+The pairplot shows TSDM_MEAN is right-skewed with a long tail, and its relationships with individual weather variables (temperature, evaporation, radiation) are diffuse rather than a clean line, no single climate variable explains pasture growth on its own.
 
 ![Correlation matrix of climate and TSDM variables](pasture-correlation-matrix.png)
 
-Random Forest was the stronger model, R² ≈ 0.717 against XGBoost's R² ≈ 0.664.
+The correlation matrix makes the reason clearer: TSDM_MEAN's single strongest raw correlate is `Year` (0.52), well ahead of any weather variable (`RH_TMAX` at 0.26, `RADIATION` at 0.20). That early signal, a real year-on-year trend outweighing day-to-day weather, is exactly what the trained models would later confirm.
+
+## 🔍 Methodology
+
+- `SelectKBest` narrowed the feature set down to seven: `Year`, `EVAP`, `RADIATION`, `Temp_Range`, `RH_TMAX`, `MIN_TEMP`, `MAX_TEMP`
+- 80/20 train/test split
+- Two models trained and compared head to head: **Random Forest Regressor** and **XGBoost Regressor**
+- `RandomizedSearchCV` hyperparameter tuning on both
+- Evaluated on four metrics, not just R², to catch a model that looks good on one number but not another: MSE, RMSE, MAE, and R²
+
+## 📈 Results
+
+| Model | MSE | RMSE | MAE | R² |
+|---|---|---|---|---|
+| **Random Forest** | 0.281 | 0.531 | 0.387 | **0.717** |
+| XGBoost | 0.335 | 0.579 | 0.435 | 0.664 |
+
+Random Forest won on every metric, not just the headline R².
 
 ![Feature importance from the Random Forest model](pasture-feature-importance.png)
 
-Year was by far the dominant predictor, well ahead of evaporation and solar radiation, which suggests a meaningful year-on-year trend in the data beyond seasonal weather alone.
+`Year` dominates the trained model's feature importance too, at roughly 0.55, more than five times the next feature (`EVAP`). That's consistent with what the correlation matrix already hinted at during EDA: whatever is driving TSDM year over year (management practices, longer-term climate trends, pasture recovery cycles) matters more than any single weather reading.
 
 ![Actual vs predicted values](pasture-actual-vs-predicted.png)
 
+The actual-vs-predicted scatter clusters reasonably tightly around the ideal-fit line, with the expected wider scatter at the extremes, consistent with an R² in the low 0.7s: a model that captures the dominant trend well without overfitting to noise.
+
 ![Historical vs predicted monthly mean TSDM](pasture-predicted.png)
+
+Applied forward, the model's predicted monthly averages continue the same seasonal pattern the historical data shows, rather than drifting off into an implausible trend, a useful sanity check that it's learned something real rather than an artefact of the training window.
+
+## 💡 Takeaway
+
+The standout finding isn't a specific weather threshold, it's that `Year` outweighs every individual climate variable in both the raw correlations and the trained model. For anyone using this for grazing decisions, that's a practical signal in itself: year-level context (rainfall accumulated over the season, longer climate trends) is worth more than any single day's weather reading when estimating pasture growth.
 
 ## 🛠️ Tech Stack
 
@@ -55,8 +80,8 @@ Year was by far the dominant predictor, well ahead of evaporation and solar radi
 
 ## 📁 Files
 
-- [`PG-UP-1.ipynb`](PG-UP-1.ipynb) — full analysis notebook
-- [`IFN703_Varun_Vikas_Jaiswal_n11736089.pdf`](IFN703_Varun_Vikas_Jaiswal_n11736089.pdf) — exported report
+- [`PG-UP-1.ipynb`](PG-UP-1.ipynb): full analysis notebook
+- [`IFN703_Varun_Vikas_Jaiswal_n11736089.pdf`](IFN703_Varun_Vikas_Jaiswal_n11736089.pdf): exported report
 
 ---
 
